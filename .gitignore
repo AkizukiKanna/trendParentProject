@@ -1,0 +1,6 @@
+# Project exclude paths
+/eureka-server/target/
+/index-gather-store-service/target/
+/out/
+/target/
+/third-part-index-data-project/target/
