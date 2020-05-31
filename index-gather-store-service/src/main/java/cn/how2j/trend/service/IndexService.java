@@ -3,6 +3,7 @@ package cn.how2j.trend.service;
 import cn.how2j.trend.pojo.Index;
 import cn.how2j.trend.util.SpringContextUtil;
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.collection.CollectionUtil;
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
@@ -18,29 +19,29 @@ import java.util.Map;
 @Service
 @CacheConfig(cacheNames="indexes")
 public class IndexService {
-//    private List<Index> indexes;
-    private Index[] indexes;
+    private List<Index> indexes;
+//    private Index[] indexes;
     @Autowired RestTemplate restTemplate;
 
     //如果fetch_indexes_from_third_part获取失败了，就自动调用 third_part_not_connected 并返回
     //HystrixCommand默认1s获取不到数据就执行fallbackMethod
 //    @HystrixCommand(fallbackMethod = "third_part_not_connected")
 //    @Cacheable(key="'all_codes'")
-    public Index[] fetch_indexes_from_third_part(){
-//        List<Map> temp= restTemplate.getForObject("http://127.0.0.1:8090/indexes/codes.json",List.class);
-        Index[] temp= restTemplate.getForObject("http://127.0.0.1:8090/indexes/codes.json",Index[].class);
-//        return map2Index(temp);
-        return temp;
+    public List<Index> fetch_indexes_from_third_part(){
+        List<Map> temp= restTemplate.getForObject("http://127.0.0.1:8090/indexes/codes.json",List.class);
+//        Index[] temp= restTemplate.getForObject("http://127.0.0.1:8090/indexes/codes.json",Index[].class);
+        return map2Index(temp);
+//        return temp;
     }
 
-    public Index[] third_part_not_connected(){
+    public List<Index> third_part_not_connected(){
         System.out.println("third_part_not_connected()");
         Index index= new Index();
         index.setCode("000000");
         index.setName("无效指数代码");
-//        return CollectionUtil.toList(index);
-        Index[] indexs=new Index[]{index};
-        return indexs;
+        return CollectionUtil.toList(index);
+//        Index[] indexs=new Index[]{index};
+//        return indexs;
     }
  
     private List<Index> map2Index(List<Map> temp) {
@@ -62,17 +63,17 @@ public class IndexService {
     }
 
     @Cacheable(key="'all_codes'")
-    public Index[] get(){
-        return new Index[]{};
+    public List<Index> get(){
+        return CollUtil.toList();
     }
 
     @Cacheable(key="'all_codes'")
-    public Index[] store(){
+    public List<Index> store(){
         return indexes;
     }
 
     @HystrixCommand(fallbackMethod = "third_part_not_connected")
-    public Index[] fresh() {
+    public List<Index> fresh() {
         indexes =fetch_indexes_from_third_part();
         System.out.println("没有执行断路器");
         IndexService indexService = SpringContextUtil.getBean(IndexService.class);
