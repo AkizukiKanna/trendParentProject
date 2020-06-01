@@ -1,0 +1,14 @@
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+spring:
+  application:
+    name: index-zuul-service
+
+#所有的访问 /api-codes/ 的请求，都会自动转到 INDEX-CODES-SERVICE 去
+zuul:
+  routes:
+    api-a:
+      path: /api-codes/**
+      serviceId: INDEX-CODES-SERVICE
